@@ -1,0 +1,11 @@
+services:
+  video-editor:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATA_DIR=/app/data
+      - MAX_UPLOAD_SIZE_MB=500
+    restart: unless-stopped

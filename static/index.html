@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Editor — Silence Removal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">Video Editor</div>
+      <nav class="nav">
+        <a href="#" class="nav-item active">Editor</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div id="status-banner" class="status-banner hidden">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        <span id="status-banner-text">Ready to download.</span>
+      </div>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Silence Removal</h1>
+          <span id="status-badge" class="badge badge-idle">IDLE</span>
+        </div>
+        <div class="page-actions">
+          <button type="submit" form="config-form" id="submit-btn" class="btn btn-primary" disabled>Remove silence</button>
+          <button type="button" id="reset-btn" class="btn btn-outline">New video</button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button type="button" class="tab active" data-tab="upload">Upload</button>
+        <button type="button" class="tab" data-tab="settings">Settings</button>
+        <button type="button" class="tab hidden" id="preview-tab" data-tab="preview">Preview</button>
+      </div>
+
+      <div class="content">
+        <!-- Upload tab -->
+        <section id="upload-section" class="tab-panel active" data-panel="upload">
+          <div class="panel-card">
+            <div class="card-header">
+              <span class="pill pill-active">VIDEO</span>
+            </div>
+
+            <div id="drop-zone" class="drop-zone">
+              <input type="file" id="file-input" accept=".mp4,.webm,.mov,.mkv,video/*" hidden />
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <p class="drop-text">Drag &amp; drop a video, or <button type="button" id="browse-btn" class="link-btn">browse files</button></p>
+              <p class="drop-hint">MP4, WebM, MOV, MKV</p>
+            </div>
+
+            <p id="file-name" class="file-selected hidden"></p>
+          </div>
+        </section>
+
+        <!-- Settings tab -->
+        <section id="settings-section" class="tab-panel" data-panel="settings">
+          <form id="config-form">
+            <div class="panel-card">
+              <div class="card-header">
+                <span class="pill pill-active">SILENCE</span>
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="min_silence_duration">MIN SILENCE DURATION (S)</label>
+                <input type="number" id="min_silence_duration" name="min_silence_duration" value="1.0" min="0.1" step="0.1" required />
+                <span class="field-hint">Silence longer than this will be removed</span>
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="silence_threshold_db">SILENCE THRESHOLD (DB)</label>
+                <input type="number" id="silence_threshold_db" name="silence_threshold_db" value="-35" max="-1" step="1" required />
+                <span class="field-hint">Lower values are more aggressive (e.g. -40)</span>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label class="field-label" for="padding_before">PADDING BEFORE (S)</label>
+                  <input type="number" id="padding_before" name="padding_before" value="0.1" min="0" step="0.05" required />
+                </div>
+                <div class="field">
+                  <label class="field-label" for="padding_after">PADDING AFTER (S)</label>
+                  <input type="number" id="padding_after" name="padding_after" value="0.1" min="0" step="0.05" required />
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="min_segment_duration">MIN SEGMENT DURATION (S)</label>
+                <input type="number" id="min_segment_duration" name="min_segment_duration" value="0.05" min="0.01" step="0.01" required />
+              </div>
+            </div>
+
+          </form>
+        </section>
+
+        <!-- Progress (shown during processing) -->
+        <section id="progress-section" class="tab-panel hidden" data-panel="progress">
+          <div class="panel-card">
+            <div class="card-header">
+              <span class="pill pill-active">PROCESSING</span>
+              <span id="job-id-label" class="job-id"></span>
+            </div>
+
+            <div class="progress-bar">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <p id="stage-label" class="stage-label">Queued…</p>
+            <p id="error-label" class="error-label hidden"></p>
+          </div>
+        </section>
+
+        <!-- Preview tab -->
+        <section id="preview-section" class="tab-panel hidden" data-panel="preview">
+          <div class="panel-card">
+            <div class="card-header">
+              <span class="pill pill-active">PREVIEW</span>
+            </div>
+            <video id="preview-video" class="preview-video" controls playsinline></video>
+          </div>
+
+          <div id="actions-section" class="actions-row">
+            <button type="button" id="download-btn" class="btn btn-primary">Download edited video</button>
+            <button type="button" id="reset-btn-2" class="btn btn-outline">New video</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
